@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {DebugProtocol} from 'vscode-debugprotocol';
-import {ProtocolServer} from './protocol';
-import {Response, Event} from './messages';
-import * as Net from 'net';
-import {URL} from 'url';
+import { DebugProtocol } from '@opensumi/vscode-debugprotocol';
+import { ProtocolServer } from './protocol';
+import { Response, Event } from './messages';
+import { runDebugAdapter } from './runDebugAdapter';
+import { URL } from 'url';
 
 
 export class Source implements DebugProtocol.Source {
@@ -42,10 +42,16 @@ export class Scope implements DebugProtocol.Scope {
 
 export class StackFrame implements DebugProtocol.StackFrame {
 	id: number;
-	source: Source;
+	name: string;
+	source?: DebugProtocol.Source;
 	line: number;
 	column: number;
-	name: string;
+	endLine?: number;
+	endColumn?: number;
+	canRestart?: boolean;
+	instructionPointerReference?: string;
+	moduleId?: number | string;
+	presentationHint?: 'normal' | 'label' | 'subtle';
 
 	public constructor(i: number, nm: string, src?: Source, ln: number = 0, col: number = 0) {
 		this.id = i;
@@ -104,6 +110,10 @@ export class Breakpoint implements DebugProtocol.Breakpoint {
 			e.source = source;
 		}
 	}
+
+	public setId(id: number) {
+		(this as DebugProtocol.Breakpoint).id = id;
+ 	}
 }
 
 export class Module implements DebugProtocol.Module {
@@ -182,6 +192,19 @@ export class TerminatedEvent extends Event implements DebugProtocol.TerminatedEv
 	}
 }
 
+export class ExitedEvent extends Event implements DebugProtocol.ExitedEvent {
+	body: {
+		exitCode: number
+	};
+
+	public constructor(exitCode: number) {
+		super('exited');
+		this.body = {
+			exitCode: exitCode
+		};
+	}
+}
+
 export class OutputEvent extends Event implements DebugProtocol.OutputEvent {
 	body: {
 		category: string,
@@ -219,10 +242,10 @@ export class ThreadEvent extends Event implements DebugProtocol.ThreadEvent {
 export class BreakpointEvent extends Event implements DebugProtocol.BreakpointEvent {
 	body: {
 		reason: string,
-		breakpoint: Breakpoint
+		breakpoint: DebugProtocol.Breakpoint
 	};
 
-	public constructor(reason: string, breakpoint: Breakpoint) {
+	public constructor(reason: string, breakpoint: DebugProtocol.Breakpoint) {
 		super('breakpoint');
 		this.body = {
 			reason: reason,
@@ -234,10 +257,10 @@ export class BreakpointEvent extends Event implements DebugProtocol.BreakpointEv
 export class ModuleEvent extends Event implements DebugProtocol.ModuleEvent {
 	body: {
 		reason: 'new' | 'changed' | 'removed',
-		module: Module
+		module: DebugProtocol.Module
 	};
 
-	public constructor(reason: 'new' | 'changed' | 'removed', module: Module) {
+	public constructor(reason: 'new' | 'changed' | 'removed', module: DebugProtocol.Module) {
 		super('module');
 		this.body = {
 			reason: reason,
@@ -249,10 +272,10 @@ export class ModuleEvent extends Event implements DebugProtocol.ModuleEvent {
 export class LoadedSourceEvent extends Event implements DebugProtocol.LoadedSourceEvent {
 	body: {
 		reason: 'new' | 'changed' | 'removed',
-		source: Source
+		source: DebugProtocol.Source
 	};
 
-	public constructor(reason: 'new' | 'changed' | 'removed', source: Source) {
+	public constructor(reason: 'new' | 'changed' | 'removed', source: DebugProtocol.Source) {
 		super('loadedSource');
 		this.body = {
 			reason: reason,
@@ -324,6 +347,42 @@ export class ProgressEndEvent extends Event implements DebugProtocol.ProgressEnd
 	}
 }
 
+export class InvalidatedEvent extends Event implements DebugProtocol.InvalidatedEvent {
+	body: {
+		areas?: DebugProtocol.InvalidatedAreas[];
+		threadId?: number;
+		stackFrameId?: number;
+	};
+
+	public constructor(areas?: DebugProtocol.InvalidatedAreas[], threadId?: number, stackFrameId?: number) {
+		super('invalidated');
+		this.body = {
+		};
+		if (areas) {
+			this.body.areas = areas;
+		}
+		if (threadId) {
+			this.body.threadId = threadId;
+		}
+		if (stackFrameId) {
+			this.body.stackFrameId = stackFrameId;
+		}
+	}
+}
+
+export class MemoryEvent extends Event implements DebugProtocol.MemoryEvent {
+	body: {
+		memoryReference: string;
+		offset: number;
+		count: number;
+	};
+
+	public constructor(memoryReference: string, offset: number, count: number) {
+		super('memory');
+		this.body = { memoryReference, offset, count };
+	}
+}
+
 export enum ErrorDestination {
 	User = 1,
 	Telemetry = 2
@@ -383,39 +442,7 @@ export class DebugSession extends ProtocolServer {
 	 * A virtual constructor...
 	 */
 	public static run(debugSession: typeof DebugSession) {
-
-		// parse arguments
-		let port = 0;
-		const args = process.argv.slice(2);
-		args.forEach(function (val, index, array) {
-			const portMatch = /^--server=(\d{4,5})$/.exec(val);
-			if (portMatch) {
-				port = parseInt(portMatch[1], 10);
-			}
-		});
-
-		if (port > 0) {
-			// start as a server
-			console.error(`waiting for debug protocol on port ${port}`);
-			Net.createServer((socket) => {
-				console.error('>> accepted connection from client');
-				socket.on('end', () => {
-					console.error('>> client connection closed\n');
-				});
-				const session = new debugSession(false, true);
-				session.setRunAsServer(true);
-				session.start(socket, socket);
-			}).listen(port);
-		} else {
-
-			// start a session
-			//console.error('waiting for debug protocol on stdin/stdout');
-			const session = new debugSession(false);
-			process.on('SIGTERM', () => {
-				session.shutdown();
-			});
-			session.start(process.stdin, process.stdout);
-		}
+		runDebugAdapter(debugSession);
 	}
 
 	public shutdown(): void {
@@ -461,7 +488,7 @@ export class DebugSession extends ProtocolServer {
 	}
 
 	public runInTerminalRequest(args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) {
-		this.sendRequest('runInTerminal', args, timeout, cb);
+		this.sendRequest('runInTerminal', args, timeout, cb as (r: DebugProtocol.Response) => void);
 	}
 
 	protected dispatchRequest(request: DebugProtocol.Request): void {
@@ -560,7 +587,7 @@ export class DebugSession extends ProtocolServer {
 				this.sourceRequest(<DebugProtocol.SourceResponse> response, request.arguments, request);
 
 			} else if (request.command === 'threads') {
-				this.threadsRequest(<DebugProtocol.ThreadsResponse> response, request);
+				this.threadsRequest(<DebugProtocol.ThreadsResponse> response, request.arguments, request);
 
 			} else if (request.command === 'terminateThreads') {
 				this.terminateThreadsRequest(<DebugProtocol.TerminateThreadsResponse> response, request.arguments, request);
@@ -591,6 +618,9 @@ export class DebugSession extends ProtocolServer {
 
 			} else if (request.command === 'readMemory') {
 				this.readMemoryRequest(<DebugProtocol.ReadMemoryResponse> response, request.arguments, request);
+
+			} else if (request.command === 'writeMemory') {
+				this.writeMemoryRequest(<DebugProtocol.WriteMemoryResponse> response, request.arguments, request);
 
 			} else if (request.command === 'disassemble') {
 				this.disassembleRequest(<DebugProtocol.DisassembleResponse> response, request.arguments, request);
@@ -704,6 +734,11 @@ export class DebugSession extends ProtocolServer {
 		/** The debug adapter does not support the 'setInstructionBreakpoints' request. */
 		response.body.supportsInstructionBreakpoints = false;
 
+		/** The debug adapter does not support 'filterOptions' on the 'setExceptionBreakpoints' request. */
+		response.body.supportsExceptionFilterOptions = false;
+
+		response.body.supportsThreadIdCorrespond = true;
+
 		this.sendResponse(response);
 	}
 
@@ -784,7 +819,7 @@ export class DebugSession extends ProtocolServer {
 		this.sendResponse(response);
 	}
 
-	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
+	protected threadsRequest(response: DebugProtocol.ThreadsResponse, args: DebugProtocol.ThreadsArguments, request?: DebugProtocol.Request): void {
 		this.sendResponse(response);
 	}
 
@@ -845,6 +880,10 @@ export class DebugSession extends ProtocolServer {
 	}
 
 	protected readMemoryRequest(response: DebugProtocol.ReadMemoryResponse, args: DebugProtocol.ReadMemoryArguments, request?: DebugProtocol.Request): void {
+		this.sendResponse(response);
+	}
+
+	protected writeMemoryRequest(response: DebugProtocol.WriteMemoryResponse, args: DebugProtocol.WriteMemoryArguments, request?: DebugProtocol.Request): void {
 		this.sendResponse(response);
 	}
 

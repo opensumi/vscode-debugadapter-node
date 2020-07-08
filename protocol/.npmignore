@@ -1,7 +1,9 @@
 .vscode/
 lib/test/
+lib/generator*
 lib/*.map
 src/
 test/
 .gitignore
 .npmignore
+tsconfig.json
