@@ -19,7 +19,7 @@
 	"typings": "./lib/main",
 	"dependencies": {
 		"mkdirp": "^1.0.4",
-		"vscode-debugprotocol": "1.51.0-beta.1"
+		"@ide-framework/vscode-debugprotocol": "1.51.0-beta.1"
 	},
 	"devDependencies": {
 		"@types/mkdirp": "^1.0.2",
