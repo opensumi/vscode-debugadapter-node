@@ -53,7 +53,7 @@ export module DebugProtocol {
 		/** Contains the raw error in short form if 'success' is false.
 			This raw error might be interpreted by the frontend and is not shown in the UI.
 			Some predefined values exist.
-			Values: 
+			Values:
 			'cancelled': request was cancelled.
 			etc.
 		*/
@@ -214,7 +214,7 @@ export module DebugProtocol {
 		// event: 'output';
 		body: {
 			/** The output category. If not specified or if the category is not understand by the client, 'console' is assumed.
-				Values: 
+				Values:
 				'console': Show the output in the client's default message UI, e.g. a 'debug console'. This category should only be used for informational output from the debugger (as opposed to the debuggee).
 				'important': A hint for the client to show the ouput in the client's UI for important and highly visible information, e.g. as a popup notification. This category should only be used for important messages from the debugger (as opposed to the debuggee). Since this category value is a hint, clients might ignore the hint and assume the 'console' category.
 				'stdout': Show the output as normal program output from the debuggee.
@@ -836,7 +836,7 @@ export module DebugProtocol {
 	}
 
 	/** SetInstructionBreakpoints request; value of command field is 'setInstructionBreakpoints'.
-		Replaces all existing instruction breakpoints. Typically, instruction breakpoints would be set from a diassembly window. 
+		Replaces all existing instruction breakpoints. Typically, instruction breakpoints would be set from a diassembly window.
 		To clear all instruction breakpoints, specify an empty array.
 		When an instruction breakpoint is hit, a 'stopped' event (with reason 'instruction breakpoint') is generated.
 		Clients should only call this request if the capability 'supportsInstructionBreakpoints' is true.
@@ -1239,6 +1239,13 @@ export module DebugProtocol {
 	*/
 	export interface ThreadsRequest extends Request {
 		// command: 'threads';
+		arguments?: ThreadsArguments;
+	}
+
+	/** Arguments for 'Threads' request. */
+	export interface ThreadsArguments {
+		/** Id of threads to be collocation. */
+		threadId?: number;
 	}
 
 	/** Response to 'threads' request. */
@@ -1332,7 +1339,7 @@ export module DebugProtocol {
 		/** Evaluate the expression in the scope of this stack frame. If not specified, the expression is evaluated in the global scope. */
 		frameId?: number;
 		/** The context in which the evaluate request is run.
-			Values: 
+			Values:
 			'watch': evaluate is run in a watch.
 			'repl': evaluate is run from REPL console.
 			'hover': evaluate is run from a data hover.
@@ -1723,6 +1730,8 @@ export module DebugProtocol {
 		supportsExceptionFilterOptions?: boolean;
 		/** The debug adapter supports the 'singleThread' property on the execution requests ('continue', 'next', 'stepIn', 'stepOut', 'reverseContinue', 'stepBack'). */
 		supportsSingleThreadExecutionRequests?: boolean;
+		/** The debug adapter supports 'threadId' as an argument on the 'threads' request. */
+		supportsThreadIdCorrespond?: boolean;
 	}
 
 	/** An ExceptionBreakpointsFilter is shown in the UI as an filter option for configuring how exceptions are dealt with. */
@@ -1764,9 +1773,9 @@ export module DebugProtocol {
 	/** A Module object represents a row in the modules view.
 		Two attributes are mandatory: an id identifies a module in the modules view and is used in a ModuleEvent for identifying a module for adding, updating or deleting.
 		The name is used to minimally render the module in the UI.
-		
+
 		Additional attributes can be added to the module. They will show up in the module View if they have a corresponding ColumnDescriptor.
-		
+
 		To avoid an unnecessary proliferation of additional attributes with similar semantics but different names
 		we recommend to re-use attributes from the 'recommended' list below first, and only introduce new attributes if nothing appropriate could be found.
 	*/
@@ -1777,7 +1786,7 @@ export module DebugProtocol {
 		name: string;
 		/** optional but recommended attributes.
 			always try to use these first before introducing additional attributes.
-			
+
 			Logical full path to the module. The exact definition is implementation defined, but usually this would be a full path to the on-disk file for the module.
 		*/
 		path?: string;
@@ -1897,7 +1906,7 @@ export module DebugProtocol {
 		/** Name of the scope such as 'Arguments', 'Locals', or 'Registers'. This string is shown in the UI as is and can be translated. */
 		name: string;
 		/** An optional hint for how to present this scope in the UI. If this attribute is missing, the scope is shown with a generic UI.
-			Values: 
+			Values:
 			'arguments': Scope contains method arguments.
 			'locals': Scope contains local variables.
 			'registers': Scope contains registers. Only a single 'registers' scope should be returned from a 'scopes' request.
@@ -1967,7 +1976,7 @@ export module DebugProtocol {
 	/** Optional properties of a variable that can be used to determine how to render the variable in the UI. */
 	export interface VariablePresentationHint {
 		/** The kind of variable. Before introducing additional values, try to use the listed values.
-			Values: 
+			Values:
 			'property': Indicates that the object is a property.
 			'method': Indicates that the object is a method.
 			'class': Indicates that the object is a class.
@@ -1984,7 +1993,7 @@ export module DebugProtocol {
 		*/
 		kind?: 'property' | 'method' | 'class' | 'data' | 'event' | 'baseClass' | 'innerClass' | 'interface' | 'mostDerivedClass' | 'virtual' | 'dataBreakpoint' | string;
 		/** Set of attributes represented as an array of strings. Before introducing additional values, try to use the listed values.
-			Values: 
+			Values:
 			'static': Indicates that the object is static.
 			'constant': Indicates that the object is a constant.
 			'readOnly': Indicates that the object is read only.
@@ -2305,7 +2314,7 @@ export module DebugProtocol {
 	}
 
 	/** Logical areas that can be invalidated by the 'invalidated' event.
-		Values: 
+		Values:
 		'all': All previously fetched data has become invalid and needs to be refetched.
 		'stacks': Previously fetched stack related data has become invalid and needs to be refetched.
 		'threads': Previously fetched thread related data has become invalid and needs to be refetched.

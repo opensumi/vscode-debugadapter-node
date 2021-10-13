@@ -2223,10 +2223,26 @@
 					"command": {
 						"type": "string",
 						"enum": [ "threads" ]
+					},
+					"arguments": {
+						"$ref": "#/definitions/ThreadsArguments"
 					}
 				},
 				"required": [ "command" ]
 			}]
+		},
+		"ThreadsArguments": {
+			"type": "object",
+			"description": "Arguments for 'Threads' request.",
+			"properties": {
+				"threadId": {
+					"type": "number",
+					"items": {
+						"type": "integer"
+					},
+					"description": "Id of threads to be collocation."
+				}
+			}
 		},
 		"ThreadsResponse": {
 			"allOf": [ { "$ref": "#/definitions/Response" }, {
@@ -3145,6 +3161,10 @@
 				"supportsSingleThreadExecutionRequests": {
 					"type": "boolean",
 					"description": "The debug adapter supports the 'singleThread' property on the execution requests ('continue', 'next', 'stepIn', 'stepOut', 'reverseContinue', 'stepBack')."
+				},
+				"supportsThreadIdCorrespond": {
+					"type": "boolean",
+					"description": "The debug adapter supports 'threadId' as an argument on the 'threads' request."
 				}
 			}
 		},

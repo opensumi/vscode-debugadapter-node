@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugProtocol } from '@ide-framework/vscode-debugprotocol';
 
 
 export class Message implements DebugProtocol.ProtocolMessage {
