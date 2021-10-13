@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { DebugProtocol } from '@ide-framework/vscode-debugprotocol';
 import { ProtocolServer } from './protocol';
 import { Response, Event } from './messages';
 import { runDebugAdapter } from './runDebugAdapter';
@@ -587,7 +587,7 @@ export class DebugSession extends ProtocolServer {
 				this.sourceRequest(<DebugProtocol.SourceResponse> response, request.arguments, request);
 
 			} else if (request.command === 'threads') {
-				this.threadsRequest(<DebugProtocol.ThreadsResponse> response, request);
+				this.threadsRequest(<DebugProtocol.ThreadsResponse> response, request.arguments, request);
 
 			} else if (request.command === 'terminateThreads') {
 				this.terminateThreadsRequest(<DebugProtocol.TerminateThreadsResponse> response, request.arguments, request);
@@ -737,6 +737,8 @@ export class DebugSession extends ProtocolServer {
 		/** The debug adapter does not support 'filterOptions' on the 'setExceptionBreakpoints' request. */
 		response.body.supportsExceptionFilterOptions = false;
 
+		response.body.supportsThreadIdCorrespond = true;
+
 		this.sendResponse(response);
 	}
 
@@ -817,7 +819,7 @@ export class DebugSession extends ProtocolServer {
 		this.sendResponse(response);
 	}
 
-	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
+	protected threadsRequest(response: DebugProtocol.ThreadsResponse, args: DebugProtocol.ThreadsArguments, request?: DebugProtocol.Request): void {
 		this.sendResponse(response);
 	}
 
