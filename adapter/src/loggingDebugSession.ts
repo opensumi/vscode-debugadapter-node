@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {DebugProtocol} from '@ide-framework/vscode-debugprotocol';
+import {DebugProtocol} from '@opensumi/vscode-debugprotocol';
 
 import * as Logger from './logger';
 const logger = Logger.logger;

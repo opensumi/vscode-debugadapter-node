@@ -1,5 +1,5 @@
 {
-	"name": "@ide-framework/vscode-debugadapter",
+	"name": "@opensumi/vscode-debugadapter",
 	"description": "Debug adapter implementation for node",
 	"version": "1.49.0-beta.1",
 	"author": "Microsoft Corporation",
@@ -21,12 +21,8 @@
 	},
 	"typings": "./lib/main",
 	"dependencies": {
-<<<<<<< HEAD
-		"@vscode/debugprotocol": "1.55.1"
-=======
 		"mkdirp": "^1.0.4",
-		"vscode-debugprotocol": "1.49.0-beta.1"
->>>>>>> f501f0e... feat: 拓展实现 supportsThreadIdCorrespond 协议
+		"@opensumi/vscode-debugprotocol": "1.49.0-beta.1"
 	},
 	"devDependencies": {
 		"@types/mocha": "^9.1.0",
