@@ -1,5 +1,5 @@
 {
-	"name": "@ide-framework/vscode-debugadapter",
+	"name": "@opensumi/vscode-debugadapter",
 	"description": "Debug adapter implementation for node",
 	"version": "1.51.0-beta.1",
 	"author": "Microsoft Corporation",
@@ -19,7 +19,7 @@
 	"typings": "./lib/main",
 	"dependencies": {
 		"mkdirp": "^1.0.4",
-		"@ide-framework/vscode-debugprotocol": "1.51.0-beta.1"
+		"@opensumi/vscode-debugprotocol": "1.51.0-beta.1"
 	},
 	"devDependencies": {
 		"@types/mkdirp": "^1.0.2",
