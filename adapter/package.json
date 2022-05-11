@@ -21,8 +21,7 @@
 	},
 	"typings": "./lib/main",
 	"dependencies": {
-		"mkdirp": "^1.0.4",
-		"@opensumi/vscode-debugprotocol": "1.55.1-beta.1"
+		"@opensumi/vscode-debugprotocol": "1.49.0-beta.1"
 	},
 	"devDependencies": {
 		"@types/mocha": "^9.1.0",
