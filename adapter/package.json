@@ -1,7 +1,7 @@
 {
-	"name": "@vscode/debugadapter",
+	"name": "@opensumi/vscode-debugadapter",
 	"description": "Debug adapter implementation for node",
-	"version": "1.55.1",
+	"version": "1.55.1-beta.1",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"repository": {
@@ -21,7 +21,7 @@
 	},
 	"typings": "./lib/main",
 	"dependencies": {
-		"@vscode/debugprotocol": "1.55.1"
+		"@opensumi/vscode-debugprotocol": "1.49.0-beta.1"
 	},
 	"devDependencies": {
 		"@types/mocha": "^9.1.0",
